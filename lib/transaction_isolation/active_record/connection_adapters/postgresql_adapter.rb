@@ -5,13 +5,6 @@ if defined?( ActiveRecord::ConnectionAdapters::PostgreSQLAdapter )
       module ConnectionAdapters # :nodoc:
         module PostgreSQLAdapter
 
-          def self.included( base )
-            base.class_eval do
-              alias_method :translate_exception_without_transaction_isolation_conflict, :translate_exception
-              alias_method :translate_exception, :translate_exception_with_transaction_isolation_conflict
-            end
-          end
-                    
           def supports_isolation_levels?
             true
           end
@@ -52,11 +45,11 @@ if defined?( ActiveRecord::ConnectionAdapters::PostgreSQLAdapter )
             end if block_given?
           end
 
-          def translate_exception_with_transaction_isolation_conflict( exception, message )
+          def translate_exception( exception, message )
             if isolation_conflict?( exception )
               ::ActiveRecord::TransactionIsolationConflict.new( "Transaction isolation conflict detected: #{exception.message}" )
             else
-              translate_exception_without_transaction_isolation_conflict( exception, message )
+              super(exception, message)
             end
           end
           
